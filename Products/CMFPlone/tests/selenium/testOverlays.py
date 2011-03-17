@@ -1,7 +1,7 @@
-from Products.CMFPlone.selenium.base import SeleniumTestCase
+from Products.CMFPlone.tests.selenium.base import SeleniumTestCase
 from plone.app.testing.selenium_layers import SELENIUM_PLONE_FUNCTIONAL_TESTING
 from plone.app.testing import TEST_USER_ID, TEST_USER_NAME, TEST_USER_PASSWORD
-from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.exceptions import NoSuchElementException
 import time
 
 class TestOverlays(SeleniumTestCase):
