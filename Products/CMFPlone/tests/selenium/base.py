@@ -15,6 +15,7 @@ class SeleniumTestCase(unittest2.TestCase):
     def setUp(self):
         self.driver = self.layer['selenium']
         self.portal = self.layer['portal']
+        self.driver.implicitly_wait(5)
         self.baseurl = "http://%s:%s/%s" % (self.layer['host'],
                                             self.layer['port'],
                                             PLONE_SITE_ID)
@@ -81,7 +82,7 @@ class SeleniumTestCase(unittest2.TestCase):
         if xpath2:
             xpath = "%s['%s']"%(xpath1, xpath2)
             xpath = xpath.replace("select['label=", "select/option['text()=")
-        self.driver.find_element_by_xpath(xpath).set_selected()
+        self.driver.find_element_by_xpath(xpath).select()
 
     def waitForPageToLoad(self, foo):
         # this does nothing but make us lazy folks happy
