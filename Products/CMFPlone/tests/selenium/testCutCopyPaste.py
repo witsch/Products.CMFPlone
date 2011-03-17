@@ -1,4 +1,4 @@
-from Products.CMFPlone.selenium.base import SeleniumTestCase
+from Products.CMFPlone.tests.selenium.base import SeleniumTestCase
 
 class TestCutPaste(SeleniumTestCase):
 

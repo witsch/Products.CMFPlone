@@ -1,7 +1,7 @@
 import os
 from App.Common import package_home
 
-from Products.CMFPlone.selenium.base import SeleniumTestCase
+from Products.CMFPlone.tests.selenium.base import SeleniumTestCase
 from plone.app.testing import TEST_USER_ID, TEST_USER_NAME, TEST_USER_PASSWORD
 from plone.app.testing import setRoles
 
