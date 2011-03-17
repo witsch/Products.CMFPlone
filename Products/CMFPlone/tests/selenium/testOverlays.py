@@ -21,7 +21,7 @@ class TestOverlays(SeleniumTestCase):
         self.driver.find_element_by_name('__ac_password').send_keys(TEST_USER_PASSWORD)
         self.driver.find_element_by_name('submit').click()
         
-        self.assertEquals(TEST_USER_ID, self.driver.find_element_by_id('user-name').get_text())
+        self.assertEquals(TEST_USER_ID, self.driver.find_element_by_id('user-name').text)
         
         self.assertRaises(NoSuchElementException, self.driver.find_element_by_id, 'login_form')
         
