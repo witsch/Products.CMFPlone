@@ -1,5 +1,7 @@
 import time
 import transaction
+import unittest2 as unittest
+
 from plone.app.testing.layers import PLONE_FIXTURE
 from plone.app.testing import FunctionalTesting
 from plone.app.testing import PloneSandboxLayer
@@ -7,9 +9,11 @@ from plone.app.testing import TEST_USER_ID, TEST_USER_NAME, TEST_USER_PASSWORD
 from plone.app.testing import login
 from plone.app.testing import setRoles
 from plone.app.testing.selenium_layers import SELENIUM_PLONE_FUNCTIONAL_TESTING
+from plone.app.testing.selenium_layers import open, login as slogin, click
+from plone.app.testing.selenium_layers import type, select
 from Products.CMFPlone.tests.selenium.base import SeleniumTestCase
 
-class TestCollections(SeleniumTestCase):
+class TestCollections(unittest.TestCase):
     layer = SELENIUM_PLONE_FUNCTIONAL_TESTING
 
     def setUp(self):
@@ -27,27 +31,22 @@ class TestCollections(SeleniumTestCase):
             for n in range(0,10):
                 self.portal['folder%s' % m].invokeFactory('Event', 'event%s' % n, title='Event %s' % n)
         setRoles(self.portal, TEST_USER_ID, ['Member'])
-    
-    def open(self, path="/"):
-        # ensure we have a clean starting point
-        transaction.commit()
-        self.driver.get("%s%s" % (self.portal.absolute_url(), path))
-    
+
     def test_add_collection(self):
         setRoles(self.portal, TEST_USER_ID, ['Manager'])
-        self.login()
-        self.open('/')
+        slogin(self.driver, self.portal, TEST_USER_NAME, TEST_USER_PASSWORD)
+        open(self.driver, self.portal.absolute_url()+'/')
 
         # Add a new collection
-        self.driver.find_element_by_partial_link_text('Add new').click()
-        self.driver.find_element_by_partial_link_text('Collection').click()
+        click(self.driver, 'link=Add new')
+        click(self.driver, 'link=Collection')
         
         # Define title, description
-        self.driver.find_element_by_name('title').send_keys('I am a collection with javascript')
-        self.driver.find_element_by_name('description').send_keys('skkep skip skop')
+        type(self.driver, 'title', 'I am a collection with javascript')
+        type(self.driver, 'description', 'skkep skip skop')
         
         # Display as Table
-        self.driver.find_element_by_id('customView').click()
+        click(self.driver, '#customView')
         
         # Select all available table columns for viewing
         options = {'CreationDate': 'Creation Date',
@@ -66,33 +65,33 @@ class TestCollections(SeleniumTestCase):
                    'Type': 'Item Type'}
         
         for opt in options.keys():
-            self.driver.find_element_by_xpath("id('customViewFields_options')/option[attribute::value='%s']" % opt).select()
+            select(self.driver, "id('customViewFields_options')/option[attribute::value='%s']" % opt)
 
-        self.driver.find_element_by_xpath("//input[attribute::value='>>']").click()
+        click(self.driver, "//input[attribute::value='>>']")
         
         # Save the collection
-        self.driver.find_element_by_name('form.button.save').click()
+        click(self.driver, 'form.button.save')
 
         # Publish it
-        self.driver.find_element_by_partial_link_text('Private').click()
-        self.driver.find_element_by_partial_link_text('Publish').click()
+        click(self.driver, 'link=Private')
+        click(self.driver, 'link=Publish')
         time.sleep(1)
         self.assertIn('Published', self.driver.get_page_source())
         
         # Add a title criteria
-        self.driver.find_element_by_link_text('Criteria').click()
-        self.driver.find_element_by_xpath("id('field')/option[attribute::value='Title']").select()
-        self.driver.find_element_by_name("form.button.AddCriterion").click()
-        self.driver.find_element_by_name("crit__Title_ATSimpleStringCriterion_value").send_keys("Event")
-        self.driver.find_element_by_name("form.button.Save").click()
+        click(self.driver, 'link=Criteria')
+        select(self.driver, "id('field')/option[attribute::value='Title']")
+        click(self.driver, "form.button.AddCriterion")
+        type(self.driver, "crit__Title_ATSimpleStringCriterion_value", "Event")
+        click(self.driver, "form.button.Save")
         time.sleep(1)
         self.assertTrue("Changes saved." in self.driver.get_page_source())
         
         # View the collection
-        self.driver.find_element_by_link_text("View").click()
+        click(self.driver, "link=View")
         
         # Check that all table columns requested are displayed
-        time.sleep(1)
+        time.sleep(3)
         for opt in options.values():
             self.assertIn(opt, self.driver.get_page_source())
 

@@ -1,25 +1,38 @@
-from Products.CMFPlone.tests.selenium.base import SeleniumTestCase
-from plone.app.testing.selenium_layers import SELENIUM_PLONE_FUNCTIONAL_TESTING
-from plone.app.testing import TEST_USER_ID, TEST_USER_NAME, TEST_USER_PASSWORD
-from selenium.webdriver.common.exceptions import NoSuchElementException
 import time
+import unittest2 as unittest
+from plone.app.testing.selenium_layers import SELENIUM_PLONE_FUNCTIONAL_TESTING
+from plone.app.testing.selenium_layers import open, login, click, type
+from plone.app.testing import TEST_USER_ID, TEST_USER_NAME, TEST_USER_PASSWORD
+from plone.app.testing.helpers import applyProfile
+from selenium.webdriver.common.exceptions import NoSuchElementException
 
-class TestOverlays(SeleniumTestCase):
+class TestOverlays(unittest.TestCase):
+    layer = SELENIUM_PLONE_FUNCTIONAL_TESTING
+    
+    def setUp(self):
+        self.driver = self.layer['selenium']
+        self.portal = self.layer['portal']
+        self.driver.implicitly_wait(5)
+
+        self.portal.acl_users._doAddUser('member1', 'secret',
+                                         ['Member'], [])
+        applyProfile(self.layer['portal'], 'Products.CMFPlone:plone-selenium')
 
     def test_login_form(self):
         # Make sure we're logged out before starting
-        self.open('/logout')
-        self.open()
+        open(self.driver, "%s%s" % (self.portal.absolute_url(),'/logout'))
+        open(self.driver, self.portal.absolute_url())
+        time.sleep(3)
         
-        self.driver.find_element_by_link_text('Log in').click()
-        self.driver.find_element_by_name('__ac_name').send_keys('wrong')
-        self.driver.find_element_by_name('__ac_password').send_keys('fail')
-        self.driver.find_element_by_name('submit').click()
+        click(self.driver, 'link=Log in')
+        type(self.driver, '__ac_name', 'wrong')
+        type(self.driver, '__ac_password', 'fail')
+        click(self.driver, 'submit')
         self.assertIn('Login failed.', self.driver.get_page_source())
         
-        self.driver.find_element_by_name('__ac_name').send_keys(TEST_USER_NAME)
-        self.driver.find_element_by_name('__ac_password').send_keys(TEST_USER_PASSWORD)
-        self.driver.find_element_by_name('submit').click()
+        type(self.driver, '__ac_name', TEST_USER_NAME)
+        type(self.driver, '__ac_password', TEST_USER_PASSWORD)
+        click(self.driver, 'submit')
         
         self.assertEquals(TEST_USER_ID, self.driver.find_element_by_id('user-name').text)
         

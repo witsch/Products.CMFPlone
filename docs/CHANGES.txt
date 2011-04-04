@@ -8,6 +8,9 @@ Changelog
 4.1b2 - Unreleased
 ------------------
 
+- Refactoring selenium tests to use selenium layer's helper functions.
+  [emanlove]
+
 - Update MigrationTool.getSoftwareVersion to return Products.CMFPlone version.
   [elro]
 
