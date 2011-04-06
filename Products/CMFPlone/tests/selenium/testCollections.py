@@ -11,7 +11,6 @@ from plone.app.testing import setRoles
 from plone.app.testing.selenium_layers import SELENIUM_PLONE_FUNCTIONAL_TESTING
 from plone.app.testing.selenium_layers import open, login as slogin, click
 from plone.app.testing.selenium_layers import type, select
-from Products.CMFPlone.tests.selenium.base import SeleniumTestCase
 
 class TestCollections(unittest.TestCase):
     layer = SELENIUM_PLONE_FUNCTIONAL_TESTING
