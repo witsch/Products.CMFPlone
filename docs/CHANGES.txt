@@ -8,6 +8,10 @@ Changelog
 4.1b2 - Unreleased
 ------------------
 
+- Add selenium test for collapsible fields.  This verifies the issue and
+  fix for http://dev.plone.org/plone/ticket/11565
+  [emanlove]
+
 - Refactoring selenium tests to use selenium layer's helper functions.
   [emanlove]
 
