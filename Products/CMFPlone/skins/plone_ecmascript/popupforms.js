@@ -174,6 +174,7 @@ jQuery(function($){
     $('.userlink').prepOverlay({
         subtype: 'ajax',
         filter: common_content_filter,
+        formselector: 'form[name=feedback_form]',
      });
 
 });
