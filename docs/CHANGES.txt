@@ -5,6 +5,10 @@
 Changelog
 =========
 
+- Links to authors are opened in an overlay.
+  refs PLIP 11697 http://dev.plone.org/plone/ticket/11697.
+  [thomasdesvenain]
+
 4.1rc3 - 2011-06-02
 -------------------
 
