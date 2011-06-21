@@ -317,22 +317,6 @@ class TestPortalCreation(PloneTestCase.PloneTestCase, WarningInterceptor):
         self.assertEqual(query['start']['range'], 'min')
         self.assertEqual(topic.checkCreationFlag(), False)
 
-    def testEventsSubTopic(self):
-        # past Events sub-topic is in place and has criteria to show
-        # only past Events Items.
-        events_topic = self.portal.events.aggregator
-        self.failUnless('previous' in events_topic.objectIds())
-        topic = getattr(events_topic, 'previous')
-        self.assertEqual(topic._getPortalTypeName(), 'Topic')
-        query = topic.buildQuery()
-        self.assertEqual(query['Type'], ('Event',))
-        self.assertEqual(query['review_state'], 'published')
-        self.assertEqual(query['end']['query'].Date(), DateTime().Date())
-        self.assertEqual(query['end']['range'], 'max')
-        self.assertEqual(topic.checkCreationFlag(), False)
-        # TODO query shouldn't have a start key #8827
-        # self.failIf(query['start'], "Bug #8827 is not yet fixed")
-
     def testObjectButtonActions(self):
         self.setRoles(['Manager', 'Member'])
         atool = self.actions
@@ -529,7 +513,7 @@ class TestPortalCreation(PloneTestCase.PloneTestCase, WarningInterceptor):
         buttons = acts.get('object_buttons', [])
         self.assertEquals(0, len(buttons))
 
-    def testObjectButtonActionsOnDefaultDocumentApplyToParent(self):
+    def testObjectButtonActionsOnDefaultDocumentDoNotApplyToParent(self):
         # only a manager would have proper permissions
         self.setRoles(['Manager', 'Member'])
         self.folder.invokeFactory('Document','index_html')
@@ -538,7 +522,7 @@ class TestPortalCreation(PloneTestCase.PloneTestCase, WarningInterceptor):
         self.assertEqual(len(buttons), 4)
         urls = [a['url'] for a in buttons]
         for url in urls:
-            self.failIf('index_html' in url, 'Action wrongly applied to default page object %s'%url)
+            self.failIf('index_html' not in url, 'Action wrongly applied to parent object %s'%url)
 
     def testObjectButtonActionsPerformCorrectAction(self):
         # only a manager would have proper permissions
@@ -605,8 +589,10 @@ class TestPortalCreation(PloneTestCase.PloneTestCase, WarningInterceptor):
                                         if p['name'] == 'View Groups'][0]
         self.failUnless(member_has_permission['selected'])
 
-    def testDiscussionItemHasNoWorkflow(self):
-        self.assertEqual(self.workflow.getChainForPortalType('Discussion Item'), ())
+    def testDiscussionItemWorkflow(self):
+        # By default the discussion item has the one_state_workflow
+        self.assertEqual(self.workflow.getChainForPortalType('Discussion Item'), 
+                         ('one_state_workflow',))
 
     def testFolderHasFolderListingView(self):
         # Folder type should allow 'folder_listing'

@@ -18,6 +18,12 @@ from Products.CMFPlone.CatalogTool import CatalogTool
 
 from Products.CMFPlone.CatalogTool import is_folderish
 from Products.CMFPlone.tests import dummy
+from plone.uuid.interfaces import IUUID
+from plone.uuid.interfaces import IAttributeUUID
+
+from zope.event import notify
+from zope.lifecycleevent import ObjectCreatedEvent
+from zope.interface.declarations import alsoProvides
 
 portal_name = PloneTestCase.portal_name
 default_user  = PloneTestCase.default_user
@@ -26,8 +32,7 @@ user2  = 'u2'
 group2 = 'g2'
 
 base_content = ['Members', 'aggregator', 'aggregator',
-                'events', 'news', 'previous',
-                default_user, 'front-page', 'doc']
+                'events', 'news', default_user, 'front-page', 'doc']
 
 
 class TestCatalogSetup(PloneTestCase.PloneTestCase):
@@ -79,10 +84,10 @@ class TestCatalogSetup(PloneTestCase.PloneTestCase):
         # is_folderish should be in catalog schema
         self.failUnless('is_folderish' in self.catalog.schema())
 
-    def testIs_folderishIsFieldIndex(self):
-        # is_folderish should be a FieldIndex
+    def testIs_folderishIsBooleanIndex(self):
+        # is_folderish should be a BooleanIndex
         self.failUnless(self.catalog.Indexes['is_folderish'].__class__.__name__,
-                        'FieldIndex')
+                        'BooleanIndex')
 
     def testDateIsDateIndex(self):
         # Date should be a DateIndex
@@ -137,10 +142,10 @@ class TestCatalogSetup(PloneTestCase.PloneTestCase):
         # ExpirationDate column should be in catalog schema
         self.failIf('ExpiresDate' in self.catalog.schema())
 
-    def testIs_Default_PageIsFieldIndex(self):
-        # sortable_title should be a FieldIndex
+    def testIs_Default_PageIsBooleanIndex(self):
+        # sortable_title should be a BooleanIndex
         self.assertEqual(self.catalog.Indexes['is_default_page'].__class__.__name__,
-                         'FieldIndex')
+                         'BooleanIndex')
 
 
 class TestCatalogIndexing(PloneTestCase.PloneTestCase):
@@ -474,11 +479,12 @@ class TestCatalogSorting(PloneTestCase.PloneTestCase):
 
     def testSortableNonASCIITitles(self):
         #test a utf-8 encoded string gets properly unicode converted
+        #sort must ignore accents
         title = 'La Pe\xc3\xb1a'
         doc = self.folder.doc
         doc.setTitle(title)
         wrapped = IndexableObjectWrapper(doc, self.portal.portal_catalog)
-        self.assertEqual(wrapped.sortable_title, u'la pe\xf1a'.encode('utf-8'))
+        self.assertEqual(wrapped.sortable_title, 'la pena')
 
     def testSortableLongNumberPrefix(self):
         title = '1.2.3 foo document'
@@ -919,6 +925,14 @@ class TestIndexers(PloneTestCase.PloneTestCase):
         wrapped = IndexableObjectWrapper(doc, self.portal.portal_catalog)
         self.failUnlessEqual(wrapped.getIcon, iconname)
 
+    def test_uuid(self):
+        alsoProvides(self.doc, IAttributeUUID)
+        notify(ObjectCreatedEvent(self.doc))
+
+        uuid = IUUID(self.doc, None)
+        wrapped = IndexableObjectWrapper(self.doc, self.portal.portal_catalog)
+        self.failUnless(wrapped.UID)
+        self.failUnless(uuid == wrapped.UID)
 
 class TestObjectProvidedIndexExtender(unittest.TestCase):
 
@@ -929,16 +943,15 @@ class TestObjectProvidedIndexExtender(unittest.TestCase):
     def testNoInterfaces(self):
         class Dummy(object):
             pass
-        self.assertEqual(self._index(Dummy()), ['zope.interface.Interface'])
+        self.assertEqual(self._index(Dummy()), ())
 
     def testSimpleInterface(self):
         class IDummy(zope.interface.Interface):
             pass
         class Dummy(object):
             zope.interface.implements(IDummy)
-        self.assertEqual(self._index(Dummy()), [
-            'Products.CMFPlone.tests.testCatalogTool.IDummy',
-            'zope.interface.Interface'])
+        self.assertEqual(self._index(Dummy()),
+            ('Products.CMFPlone.tests.testCatalogTool.IDummy', ))
 
 
 def test_suite():

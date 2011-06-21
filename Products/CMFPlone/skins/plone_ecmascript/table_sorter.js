@@ -1,14 +1,32 @@
 
 /********* Table sorter script *************/
-
+/*
+ * For all table elements with 'listing' class,
+ * when user clicks on a th without 'nosort' class,
+ * it sort table values using the td class with 'sortabledata-mydata' name,
+ * or the td text content
+ *
+ */
 (function($) {
 
-function sortable(a) {
-    // convert a to something sortable
-    // A number, but not a date?
-    if (a.charAt(4) != '-' && a.charAt(7) != '-' && !isNaN(parseFloat(a)))
-        return parseFloat(a);    
-    return a.toLowerCase();
+function sortabledataclass(cell){
+	var re = new RegExp("sortabledata-([^ ]*)","g");
+	var matches = re.exec(cell.attr('class'));
+	if(matches) return matches[1]
+	else return null
+}
+
+function sortable(cell) {
+    // convert a cell a to something sortable
+
+	// use sortabledata-xxx cell class if it is defined
+	var text = sortabledataclass(cell);
+	if(text == null) text = cell.text();
+
+	// A number, but not a date?
+    if (text.charAt(4) != '-' && text.charAt(7) != '-' && !isNaN(parseFloat(text)))
+        return parseFloat(text);
+    return text.toLowerCase();
 }
 
 function sort() {
@@ -16,29 +34,29 @@ function sort() {
 	var colnum = $('th', $(this).closest('thead')).index(th);
     var table = $(this).parents('table:first');
     var tbody = table.find('tbody:first');
-    var reverse = parseInt(table.attr('sorted')) === colnum;
+    var reverse = table.attr('sorted') == colnum;
 
     $(this).parent().find('th:not(.nosort) .sortdirection')
         .html('&#x2003;');
     $(this).children('.sortdirection').html(
         reverse ? '&#x25b2;' : '&#x25bc;');
-    
+
     var index = $(this).parent().children('th').index(this);
     var data = [];
     var usenumbers = true;
     tbody.find('tr').each(function() {
         var cells = $(this).children('td');
-        var sortableitem = sortable(cells.slice(index,index+1).text());
+        var sortableitem = sortable(cells.slice(index,index+1));
         if (isNaN(sortableitem)) usenumbers = false;
         data.push([
             sortableitem,
             // crude way to sort by surname and name after first choice
-            sortable(cells.slice(1,2).text()), sortable(cells.slice(0,1).text()),
+            sortable(cells.slice(1,2)), sortable(cells.slice(0,1)),
             this]);
     });
 
     if (data.length) {
-        if (usenumbers) 
+        if (usenumbers)
             data.sort(function(a,b) {return a[0]-b[0];});
         else
             data.sort();
@@ -48,10 +66,16 @@ function sort() {
         // appending the tr nodes in sorted order will remove them from their old ordering
         tbody.append($.map(data, function(a) { return a[3]; }));
         // jquery :odd and :even are 0 based
-        tbody.find('tr').removeClass('odd').removeClass('even')
-            .filter(':odd').addClass('even').end()
-            .filter(':even').addClass('odd');
-    }    
+        tbody.each(setoddeven);
+    }
+}
+
+function setoddeven() {
+    var tbody = $(this);
+    // jquery :odd and :even are 0 based
+    tbody.find('tr').removeClass('odd').removeClass('even')
+        .filter(':odd').addClass('even').end()
+        .filter(':even').addClass('odd');
 }
 
 $(function() {
@@ -64,8 +88,7 @@ $(function() {
         .append(blankarrow.clone())
         .css('cursor', 'pointer')
         .click(sort);
-
-    
+    $('table.listing:not(.nosort) tbody').each(setoddeven);
 });
 
 })(jQuery);

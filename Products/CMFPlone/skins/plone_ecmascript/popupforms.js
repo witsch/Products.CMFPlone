@@ -1,15 +1,21 @@
-/*jslint browser: true, white: false */
-/*global jQuery */
-
 /******
-    Standard popups
+    Set up standard Plone popups
+    
+    Provides globals: common_content_filter
+    
+    Extends jQuery.tools.overlay.conf to set up common Plone effects and
+    visuals.
 ******/
 
+
 var common_content_filter = '#content>*:not(div.configlet),dl.portalMessage.error,dl.portalMessage.info';
-var common_jqt_config = {fixed:false,speed:'fast',mask:{color:'#fff',opacity: 0.4,loadSpeed:0,closeSpeed:0}};
 
-jQuery.extend(jQuery.tools.overlay.conf, common_jqt_config);
-
+jQuery.extend(jQuery.tools.overlay.conf, 
+    {
+        fixed:false,
+        speed:'fast',
+        mask:{color:'#fff',opacity: 0.4,loadSpeed:0,closeSpeed:0}
+    });
 
 jQuery(function($){
 
@@ -43,7 +49,7 @@ jQuery(function($){
     }
 
     // login form
-    $('#portal-personaltools a[href$=/login], #portal-personaltools a[href$=/login_form], .discussion a[href$=/login_form]').prepOverlay(
+    $('#portal-personaltools a[href$="/login"], #portal-personaltools a[href$="/login_form"], .discussion a[href$="/login"], .discussion a[href$="/login_form"]').prepOverlay(
         {
             subtype: 'ajax',
             filter: common_content_filter,
@@ -137,7 +143,7 @@ jQuery(function($){
     );
 
     // registration
-    $('#portal-personaltools a[href$=/@@register]').prepOverlay(
+    $('#portal-personaltools a[href$="/@@register"]').prepOverlay(
         {
             subtype: 'ajax',
             filter: common_content_filter,
@@ -159,6 +165,7 @@ jQuery(function($){
     // Content history popup
     $('#content-history a').prepOverlay({
        subtype: 'ajax', 
+       filter: 'h2, #content-history',
        urlmatch: '@@historyview',
        urlreplace: '@@contenthistorypopup'
     });

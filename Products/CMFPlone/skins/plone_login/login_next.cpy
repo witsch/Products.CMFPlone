@@ -23,6 +23,7 @@ if membership_tool.isAnonymousUser():
     return state.set(status='failure')
 
 came_from = REQUEST.get('came_from', None)
+next = REQUEST.get('next', None)
 
 # if we weren't called from something that set 'came_from' or if HTTP_REFERER
 # is the 'logged_out' page, return the default 'login_success' form
@@ -30,7 +31,7 @@ if came_from is not None:
     scheme, location, path, parameters, query, fragment = util.urlparse(came_from)
     template_id = path.split('/')[-1]
     if template_id in ['login', 'login_success', 'login_password', 'login_failed',
-                       'login_form', 'logged_in', 'logged_out', 'registered',
+                       'login_form', 'logged_in', 'logout', 'logged_out', 'registered',
                        'mail_password', 'mail_password_form', 'register',
                        'require_login', 'member_search_results', 'pwreset_finish',
                        # We need localhost in the list, or Testing.testbrowser
@@ -43,7 +44,13 @@ if came_from is not None:
     if not context.portal_url.isURLInPortal(came_from):
         came_from = ''
 
-if came_from:
+if next:
+    if not context.portal_url.isURLInPortal(next):
+        came_from = next = ''
+    else:
+        state.set(status='external')
+
+if came_from and not next:
     # If javascript is not enabled, it is possible that cookies are not enabled.
     # If cookies aren't enabled, the redirect will log the user out, and confusion
     # may arise.  Redirect only if we know for sure that cookies are enabled.
@@ -54,6 +61,6 @@ if came_from:
     # redirect immediately
     return REQUEST.RESPONSE.redirect(came_from)
 
-state.set(came_from=came_from)
+state.set(came_from=came_from, next=next)
 
 return state
