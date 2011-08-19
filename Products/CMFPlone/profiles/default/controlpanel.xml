@@ -154,4 +154,11 @@
     i18n:attributes="title">
   <permission>Content rules: Manage rules</permission>
  </configlet>
+ <configlet title="Redirection" action_id="Redirection" appId="Plone"
+    category="Plone" condition_expr=""
+    icon_expr="string:$portal_url/maintenance_icon.png"
+    url_expr="string:${portal_url}/@@redirection-controlpanel" visible="True"
+    i18n:attributes="title">
+  <permission>Manage portal</permission>
+ </configlet>
 </object>
