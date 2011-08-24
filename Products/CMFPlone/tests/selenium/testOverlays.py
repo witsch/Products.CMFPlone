@@ -4,7 +4,7 @@ from plone.app.testing.selenium_layers import SELENIUM_PLONE_FUNCTIONAL_TESTING
 from plone.app.testing.selenium_layers import open, login, click, type
 from plone.app.testing import TEST_USER_ID, TEST_USER_NAME, TEST_USER_PASSWORD
 from plone.app.testing.helpers import applyProfile
-from selenium.webdriver.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException
 
 class TestOverlays(unittest.TestCase):
     layer = SELENIUM_PLONE_FUNCTIONAL_TESTING
