@@ -43,4 +43,4 @@ class TinyMCE(unittest.TestCase):
         click(self.driver, '#insert')
         click(self.driver, 'form.button.save')
 
-        self.assertIn('test.gif', self.driver.get_page_source())
+        self.assertIn('test.gif', self.driver.page_source)

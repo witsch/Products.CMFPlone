@@ -75,7 +75,7 @@ class TestCollections(unittest.TestCase):
         click(self.driver, 'link=Private')
         click(self.driver, 'link=Publish')
         time.sleep(1)
-        self.assertIn('Published', self.driver.get_page_source())
+        self.assertIn('Published', self.driver.page_source)
         
         # Add a title criteria
         click(self.driver, 'link=Criteria')
@@ -84,7 +84,7 @@ class TestCollections(unittest.TestCase):
         type(self.driver, "crit__Title_ATSimpleStringCriterion_value", "Event")
         click(self.driver, "form.button.Save")
         time.sleep(1)
-        self.assertTrue("Changes saved." in self.driver.get_page_source())
+        self.assertTrue("Changes saved." in self.driver.page_source)
         
         # View the collection
         click(self.driver, "link=View")
@@ -92,7 +92,7 @@ class TestCollections(unittest.TestCase):
         # Check that all table columns requested are displayed
         time.sleep(3)
         for opt in options.values():
-            self.assertIn(opt, self.driver.get_page_source())
+            self.assertIn(opt, self.driver.page_source)
 
         # Return the list of results
         def getCollectionResults(self):

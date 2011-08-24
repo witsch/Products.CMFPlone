@@ -28,7 +28,7 @@ class TestOverlays(unittest.TestCase):
         type(self.driver, '__ac_name', 'wrong')
         type(self.driver, '__ac_password', 'fail')
         click(self.driver, 'submit')
-        self.assertIn('Login failed.', self.driver.get_page_source())
+        self.assertIn('Login failed.', self.driver.page_source)
         
         type(self.driver, '__ac_name', TEST_USER_NAME)
         type(self.driver, '__ac_password', TEST_USER_PASSWORD)
