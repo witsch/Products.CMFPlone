@@ -12,13 +12,13 @@ import re
 
 from Acquisition import aq_base
 from zope.event import notify
-from zope.app.publication.interfaces import BeforeTraverseEvent
+from zope.traversing.interfaces import BeforeTraverseEvent
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import _createObjectByType
 from Products.CMFPlone.PloneFolder import ReplaceableWrapper
 
 RE_REMOVE_DOCCONT = re.compile('\s*href="http://.*?#content"')
-RE_REMOVE_NAVTREE = re.compile('\s*href="http://.*?#portlet-navigation-tree"')
+RE_REMOVE_SKIPNAV = re.compile('\s*href="http://.*?#portal-globalnav"')
 RE_REMOVE_TABS = re.compile('<ul id="portal-globalnav">.*?</ul>', re.S)
 
 
@@ -57,11 +57,11 @@ class TestPloneToolBrowserDefault(PloneTestCase.FunctionalTestCase):
 
         # request/ACTUAL_URL is fubar in tests, remove lines that depend on it
         resolved = RE_REMOVE_DOCCONT.sub('', resolved)
-        resolved = RE_REMOVE_NAVTREE.sub('', resolved)
+        resolved = RE_REMOVE_SKIPNAV.sub('', resolved)
         resolved = RE_REMOVE_TABS.sub('', resolved)
 
         body = RE_REMOVE_DOCCONT.sub('', body)
-        body = RE_REMOVE_NAVTREE.sub('', body)
+        body = RE_REMOVE_SKIPNAV.sub('', body)
         body = RE_REMOVE_TABS.sub('', body)
 
         if not body:

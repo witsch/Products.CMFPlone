@@ -9,7 +9,6 @@ from Products.CMFCore.permissions import AddPortalContent
 from Products.CMFCore.permissions import ModifyPortalContent
 from Products.PluggableAuthService.interfaces.plugins import IChallengePlugin
 
-from AccessControl import Unauthorized
 from AccessControl import Permissions
 from AccessControl import getSecurityManager
 default_user = PloneTestCase.default_user
@@ -141,7 +140,7 @@ class TestCreateObject(PloneTestCase.PloneTestCase):
         # Note that Anonymous used to be able to create the temp object...
         temp_object = self.folder.restrictedTraverse('portal_factory/Document/tmp_id')
         self.logout()
-        self.assertRaises(Unauthorized, temp_object.portal_factory.doCreate,
+        self.assertRaises(ValueError, temp_object.portal_factory.doCreate,
                           temp_object, 'foo')
 
     def testCreateObjectByDocumentEdit(self):
@@ -157,7 +156,7 @@ class TestCreateObject(PloneTestCase.PloneTestCase):
         # Note that Anonymous used to be able to create the temp object...
         temp_object = self.folder.restrictedTraverse('portal_factory/Document/tmp_id')
         self.logout()
-        self.assertRaises(Unauthorized, temp_object.document_edit,
+        self.assertRaises(ValueError, temp_object.document_edit,
                           id='foo', title='Foo', text_format='plain', text='')
 
     def testCopyPermission(self):
@@ -284,7 +283,46 @@ class TestCreateObjectByURL(PloneTestCase.FunctionalTestCase):
             '/portal_factory/Document/tmp_id/document_edit?id=foo&title=Foo&text_format=plain&text=',
             ) # No basic auth info
 
-        self.assertEqual(response.getStatus(), 401) # Unauthorized
+        self.assertEqual(response.getStatus(), 500) # ValueError
+
+
+class TestPortalFactoryTraverseByURL(PloneTestCase.FunctionalTestCase):
+    '''Weeee, functional tests'''
+
+    def afterSetUp(self):
+        self.folder_url = self.folder.absolute_url()
+        self.folder_path = '/%s' % self.folder.absolute_url(1)
+        self.basic_auth = '%s:%s' % (default_user, default_password)
+        # We want 401 responses, not redirects to a login page
+        plugins = self.portal.acl_users.plugins
+        plugins.deactivatePlugin( IChallengePlugin, 'credentials_cookie_auth')
+
+        # Enable portal_factory for Document type
+        self.factory = self.portal.portal_factory
+        self.factory.manage_setPortalFactoryTypes(listOfTypeIds=['Document'])
+
+        # setup a temp object
+        response = self.publish(self.folder_path +
+                                '/createObject?type_name=Document',
+                                self.basic_auth
+                                )
+        # We got redirected to the factory
+        self.assertEqual(response.getStatus(), 302)
+        newpath = response.getHeader('location')
+        proto, host, path, query, fragment = urlparse.urlsplit(newpath)
+
+        self.tmp_obj_path = path.replace('/edit', '')
+
+    def testFSImage(self):
+        path = "%s/logo.jpg" % self.tmp_obj_path
+        data = self.publish(path)
+        self.assertEqual(data.getHeader('Content-Type'), 'image/jpeg')
+
+    def testBrowserResource(self):
+        path = "%s/++resource++plone-logo.png" % self.tmp_obj_path
+        data = self.publish(path)
+        self.assertEqual(data.getHeader('Content-Type'), 'image/png')
+
 
 
 def test_suite():
@@ -293,4 +331,5 @@ def test_suite():
     suite.addTest(makeSuite(TestPortalFactory))
     suite.addTest(makeSuite(TestCreateObject))
     suite.addTest(makeSuite(TestCreateObjectByURL))
+    suite.addTest(makeSuite(TestPortalFactoryTraverseByURL))
     return suite
