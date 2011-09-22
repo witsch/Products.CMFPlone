@@ -12,6 +12,7 @@ from plone.app.testing.selenium_layers import SELENIUM_PLONE_FUNCTIONAL_TESTING
 from plone.app.testing.selenium_layers import open, login as slogin, click
 from plone.app.testing.selenium_layers import type, select
 
+
 class TestCollections(unittest.TestCase):
     layer = SELENIUM_PLONE_FUNCTIONAL_TESTING
 
@@ -19,7 +20,7 @@ class TestCollections(unittest.TestCase):
         self.driver = self.layer['selenium']
         self.portal = self.layer['portal']
         self.driver.implicitly_wait(5)
-        
+
         # Set a default workflow for the site
         self.portal.portal_workflow.setDefaultChain('simple_publication_workflow')
         
@@ -95,10 +96,108 @@ class TestCollections(unittest.TestCase):
             self.assertIn(opt, self.driver.page_source)
 
         # Return the list of results
-        def getCollectionResults(self):
+        def  getCollectionResults(self):
             return self.driver.find_elements_by_xpath("//table[attribute::class='listing']/tbody/tr")
         
         # Make sure we find all 20 events
         self.assertEquals(len(getCollectionResults(self)), 20)
         
+
+from plone.seleniumtesting.homepage import HomePage
+
+class TestCollectionsUsingPageObjects(unittest.TestCase):
+    layer = SELENIUM_PLONE_FUNCTIONAL_TESTING
+
+    def setUp(self):
+        self.driver = self.layer['selenium']
+        self.portal = self.layer['portal']
+        self.driver.implicitly_wait(5)
+
+        self.hp = HomePage(self.driver, self.portal)
         
+        # Set a default workflow for the site
+        self.portal.portal_workflow.setDefaultChain('simple_publication_workflow')
+        
+        setRoles(self.portal, TEST_USER_ID, ['Manager'])
+        login(self.portal, TEST_USER_NAME)
+        for m in range(1,3):
+            self.portal.invokeFactory('Folder', 'folder%s' % m, title='Folder %s' % m)
+            for n in range(0,10):
+                self.portal['folder%s' % m].invokeFactory('Event', 'event%s' % n, title='Event %s' % n)
+        setRoles(self.portal, TEST_USER_ID, ['Member'])
+
+    def test_add_collection_using_pageobjects(self):
+        setRoles(self.portal, TEST_USER_ID, ['Manager'])
+        slogin(self.driver, self.portal, TEST_USER_NAME, TEST_USER_PASSWORD)
+        self.hp.open_default_url()
+        
+        # Add a new collection
+        topic_page = self.hp.add_new_collection()
+
+        # Define title, description
+        topic_page.title.set('I am a collection with javascript')
+        topic_page.description.set('skkep skip skop')
+
+        # Display as Table
+        topic_page.display_as_table.check()
+        
+        # Select all available table columns for viewing
+        options = ['CreationDate',
+                   'Creator',
+                   'Description',
+                   'EffectiveDate',
+                   'end',
+                   'ExpirationDate',
+                   'getId',
+                   'getObjSize',
+                   'location',
+                   'ModificationDate',
+                   'review_state',
+                   'start',
+                   'Subject',
+                   'Type']
+
+        options = {'CreationDate': 'Creation Date',
+                   'Creator': 'Creator',
+                   'Description': 'Description',
+                   'EffectiveDate': 'Effective Date',
+                   'end': 'End Date',
+                   'ExpirationDate': 'Expiration Date',
+                   'getId': 'Short Name',
+                   'getObjSize': 'Size',
+                   'location': 'Location',
+                   'ModificationDate': 'Modification Date',
+                   'review_state': 'State',
+                   'start': 'Start Date',
+                   'Subject': 'Tags',
+                   'Type': 'Item Type'}
+
+        topic_page.table_columns.addKeywordsByValue(options.keys())
+        
+        # Save the collection
+        topic_view = topic_page.save()
+
+        # Publish it
+        topic_view.publish()
+
+        # Add a title criteria
+        topic_criteria = topic_view.setCriteria()
+        topic_criteria.criteriafieldname.selectOptionByValue('Title')
+        topic_criteria.addCriteria()
+        
+        topic_criteria.setCriteriaDetail('Title', 'Event')
+        topic_criteria.saveCriteriaDetails()
+
+        # View the collection
+        topic_view.viewCollection()
+        
+        # Check that all table columns requested are displayed
+        for opt in options.values():
+            self.assertTrue(topic_view.isColumnDisplayed(opt))
+
+        # Return the list of results
+        results = topic_view.getCollectionResults()
+        
+        # Make sure we find all 20 events
+        self.assertEquals(len(results), 20)
+
