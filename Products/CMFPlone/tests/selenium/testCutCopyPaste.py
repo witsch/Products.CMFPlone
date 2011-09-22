@@ -60,15 +60,15 @@ class TestCutPasteUsingPageObjects(unittest.TestCase):
         self.driver.find_element_by_partial_link_text('Folder 1').click()
 
         fpo = FolderPageObject(self.driver)
-        folder_contents = fpo.goto_contents_tab()
-        folder_contents.selectFolderItemByPostition(0)
-        folder_contents.cut()
+        fpo.goto_contents_tab()
+        fpo.contents.selectFolderItemByPostition(0)
+        fpo.contents.cut()
 
         #ToDo verify cut
         
         self.driver.find_element_by_partial_link_text('Folder 2').click()
-        folder_contents = fpo.goto_contents_tab()
-        folder_contents.paste()
+        fpo.goto_contents_tab()
+        fpo.contents.paste()
 
         #ToDo verify pasted
         
@@ -78,14 +78,14 @@ class TestCutPasteUsingPageObjects(unittest.TestCase):
         self.driver.find_element_by_partial_link_text('Folder 1').click()
 
         fpo = FolderPageObject(self.driver)
-        folder_contents = fpo.goto_contents_tab()
-        folder_contents.selectFolderItemByPostition(0)
-        folder_contents.copy()
+        fpo.goto_contents_tab()
+        fpo.contents.selectFolderItemByPostition(0)
+        fpo.contents.copy()
 
         #ToDo verify copy
         
         self.driver.find_element_by_partial_link_text('Folder 2').click()
-        folder_contents = fpo.goto_contents_tab()
-        folder_contents.paste()
+        fpo.goto_contents_tab()
+        fpo.contents.paste()
 
         #ToDo verify pasted
