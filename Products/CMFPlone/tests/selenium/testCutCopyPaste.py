@@ -64,13 +64,13 @@ class TestCutPasteUsingPageObjects(unittest.TestCase):
         fpo.contents.selectFolderItemByPostition(0)
         fpo.contents.cut()
 
-        #ToDo verify cut
+        self.assertTrue(fpo.contents.numItems(), 0)
         
         self.driver.find_element_by_partial_link_text('Folder 2').click()
         fpo.goto_contents_tab()
         fpo.contents.paste()
 
-        #ToDo verify pasted
+        self.assertTrue(fpo.contents.numItems(), 1)
         
     def test_copy_and_paste_using_pageobjects(self):
         login(self.driver,self.portal,'member1','secret')
@@ -82,10 +82,10 @@ class TestCutPasteUsingPageObjects(unittest.TestCase):
         fpo.contents.selectFolderItemByPostition(0)
         fpo.contents.copy()
 
-        #ToDo verify copy
+        self.assertTrue(fpo.contents.numItems(), 1)
         
         self.driver.find_element_by_partial_link_text('Folder 2').click()
         fpo.goto_contents_tab()
         fpo.contents.paste()
 
-        #ToDo verify pasted
+        self.assertTrue(fpo.contents.numItems(), 1)
